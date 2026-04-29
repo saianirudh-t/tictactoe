@@ -1,6 +1,5 @@
-# Ignore platform-specific C++ folders in language stats
-windows/* linguist-vendored
-linux/* linguist-vendored
-macos/* linguist-vendored
-ios/* linguist-vendored
-android/* linguist-vendored
+# Ignore everything in the repo from language stats
+* linguist-detectable=false
+
+# Specifically re-enable detection for Dart files
+*.dart linguist-detectable=true
