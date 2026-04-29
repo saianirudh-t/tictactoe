@@ -41,12 +41,19 @@ class _GameState extends State<Game> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: const Text("tictactoe")),
+        appBar: AppBar(
+          title: const Text("tictactoe"),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+        ),
         body: Padding(
           padding: EdgeInsets.all(10),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
+                flex: 2,
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -97,7 +104,18 @@ class _GameState extends State<Game> {
                   },
                 ),
               ),
-              Text(winner),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                  ),
+                  child: Text(
+                    winner,
+                    style: TextStyle(fontSize: 40),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
