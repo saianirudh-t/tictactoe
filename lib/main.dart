@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 void main() {
   runApp(const Game());
 }
 
-List<String> display = ['', '', '', '', '', '', '', '', ''];
+Timer? timer;
+int remainingSeconds = 15; // Start at 30
+bool oTurn = false;
+
+List<String> display = List.filled(9, '');
 String winner = "The game is not done yet";
 String result = "no winner";
 String checkwinner() {
@@ -40,7 +45,23 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  bool oTurn = true;
+  bool oTurn = false;
+  void startMoveTimer() {
+    timer?.cancel(); // Cancel any existing timer before starting a new one
+    setState(() => remainingSeconds = 15);
+
+    timer = Timer.periodic(Duration(seconds: 1), (t) {
+      setState(() {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+        } else {
+          // TIME EXCEEDED: Switch turns automatically
+          oTurn = !oTurn;
+          startMoveTimer(); // Restart clock for the next player
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +79,7 @@ class _GameState extends State<Game> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
@@ -74,21 +95,24 @@ class _GameState extends State<Game> {
                       ),
                       onPressed: (display[index] == '' && result == "no winner")
                           ? () {
-                              winner = "The game is not done yet";
-                              print(display);
                               setState(() {
                                 display[index] = oTurn ? "O" : "X";
                                 oTurn = !oTurn;
-                                result = checkwinner();
-                                if (result != "no winner") {
-                                  winner = "the winner of the game is $result";
-                                }
-                                if (result == "draw") {
-                                  winner = "The game has been drawn";
+                                result =
+                                    checkwinner(); // Updates to "X", "O", "draw", or "no winner"
+                                if (result == "X" || result == "O") {
+                                  winner = "The Winner is $result!";
+                                  timer?.cancel(); // Stop the countdown
+                                } else if (result == "draw") {
+                                  winner = "It's a Draw!";
+                                  timer?.cancel();
+                                } else {
+                                  winner = "The game is not done yet";
                                 }
                               });
                             }
                           : null,
+
                       child: Text(
                         display[index],
                         style: TextStyle(
@@ -104,17 +128,31 @@ class _GameState extends State<Game> {
                 onPressed: () {
                   setState(() {
                     display = List.filled(9, '');
-                    result = "no winner";
                     winner = "The game is not done yet";
+                    result =
+                        "no winner"; // Reset to the string expected by checkwinner
+                    oTurn = true;
+                    startMoveTimer(); // Restart your countdown
                   });
                 },
-                child: Text(result == "no winner" ? "Reset game" : "New game"),
+                child: Text(result == "no winner" ? "Reset Game" : "New Game"),
               ),
               Expanded(
+                flex: 2,
                 child: Text(
                   winner,
                   style: TextStyle(fontSize: 40),
                   textAlign: TextAlign.center,
+                ),
+              ),
+              Text(
+                "Time left: $remainingSeconds",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: remainingSeconds <= 5
+                      ? Colors.red
+                      : Colors.black, // Turn red at 5s
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
