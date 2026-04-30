@@ -4,8 +4,9 @@ void main() {
   runApp(const Game());
 }
 
-List<String> display = ['', '', '', '', '', '', '', '', ""];
+List<String> display = ['', '', '', '', '', '', '', '', ''];
 String winner = "The game is not done yet";
+String result = "no winner";
 String checkwinner() {
   List<List<int>> winConditions = [
     [0, 1, 2],
@@ -22,7 +23,11 @@ String checkwinner() {
         display[condition[0]] == display[condition[1]] &&
         display[condition[0]] == display[condition[2]]) {
       print('${display[condition[0]]} is the winner of the game');
+
       return display[condition[0]];
+    }
+    if (!display.contains('')) {
+      return "draw";
     }
   }
   return "no winner";
@@ -67,30 +72,21 @@ class _GameState extends State<Game> {
                           borderRadius: BorderRadius.zero,
                         ),
                       ),
-                      onPressed: display[index] == ''
+                      onPressed: (display[index] == '' && result == "no winner")
                           ? () {
+                              winner = "The game is not done yet";
                               print(display);
                               setState(() {
                                 display[index] = oTurn ? "O" : "X";
                                 oTurn = !oTurn;
+                                result = checkwinner();
+                                if (result != "no winner") {
+                                  winner = "the winner of the game is $result";
+                                }
+                                if (result == "draw") {
+                                  winner = "The game has been drawn";
+                                }
                               });
-                              String result = checkwinner();
-                              if (result != "no winner" && result != "") {
-                                setState(() {
-                                  display = [
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    "",
-                                  ];
-                                  winner = "The winner of the game is $result";
-                                });
-                              }
                             }
                           : null,
                       child: Text(
@@ -104,16 +100,21 @@ class _GameState extends State<Game> {
                   },
                 ),
               ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    display = List.filled(9, '');
+                    result = "no winner";
+                    winner = "The game is not done yet";
+                  });
+                },
+                child: Text(result == "no winner" ? "Reset game" : "New game"),
+              ),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black),
-                  ),
-                  child: Text(
-                    winner,
-                    style: TextStyle(fontSize: 40),
-                    textAlign: TextAlign.center,
-                  ),
+                child: Text(
+                  winner,
+                  style: TextStyle(fontSize: 40),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
