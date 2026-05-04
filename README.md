@@ -15,18 +15,11 @@ A modern, high-fidelity Tic-Tac-Toe game built with **Flutter**. It features a n
 
 ---
 
-## 📦 Build & Deployment
-
-Use these commands to generate the files for your specific needs:
-
 ## 📸 Screenshots
 
 | Start Screen | Active Gameplay | Winning State |
 | :---: | :---: | :---: |
 | <img src="screenshots/start.png" width="200"> | <img src="screenshots/playing.png" width="200"> | <img src="screenshots/winning.png" width="200"> |
-
-### 📱 Android (APK)
-Generates a standalone installer for Android devices.
 
 ## 🔧 Installation
 1.  Clone: `git clone https://github.com/saianirudh-t/tictactoe.git`
