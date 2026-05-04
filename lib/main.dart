@@ -38,6 +38,8 @@ String checkwinner() {
   return "no winner";
 }
 
+bool firstmove = display.every((ele) => ele == '');
+
 class Game extends StatefulWidget {
   const Game({super.key});
   @override
@@ -78,6 +80,10 @@ class _GameState extends State<Game> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Text(
+                "Turn ${oTurn ? "O" : "X"}",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               Expanded(
                 flex: 3,
                 child: GridView.builder(
@@ -96,6 +102,12 @@ class _GameState extends State<Game> {
                       onPressed: (display[index] == '' && result == "no winner")
                           ? () {
                               setState(() {
+                                bool firstmove = display.every(
+                                  (ele) => ele == '',
+                                );
+                                if (firstmove) {
+                                  startMoveTimer();
+                                }
                                 display[index] = oTurn ? "O" : "X";
                                 oTurn = !oTurn;
                                 result =
@@ -127,16 +139,21 @@ class _GameState extends State<Game> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
+                    // 1. Stop the current timer completely
+                    timer?.cancel();
+                    // 2. Clear the board and reset state
                     display = List.filled(9, '');
+                    result = "no winner";
                     winner = "The game is not done yet";
-                    result =
-                        "no winner"; // Reset to the string expected by checkwinner
                     oTurn = true;
-                    startMoveTimer(); // Restart your countdown
+                    remainingSeconds = 15; // Reset visual clock to default
+                    // 3. Reset your 'firstmove' flag
+                    firstmove = true;
                   });
                 },
                 child: Text(result == "no winner" ? "Reset Game" : "New Game"),
               ),
+
               Expanded(
                 flex: 2,
                 child: Text(
