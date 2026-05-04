@@ -222,7 +222,9 @@ class _GameScreenState extends State<GameScreen>
                 mainAxisSpacing: 12,
               ),
               itemBuilder: (context, index) => GestureDetector(
-                onTap: () => handleMove(index),
+                onTap: (display[index] == '' && result == "no winner")
+                    ? () => handleMove(index)
+                    : null,
                 child: Container(
                   decoration: BoxDecoration(
                     color: gridColor,
@@ -319,7 +321,7 @@ class WinningLinePainter extends CustomPainter {
     if (startIdx == null || endIdx == null) return;
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 10.0
+      ..strokeWidth = 12.0
       ..strokeCap = StrokeCap.round;
 
     Offset getOffset(int i) {
