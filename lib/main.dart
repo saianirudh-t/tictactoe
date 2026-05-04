@@ -321,7 +321,7 @@ class WinningLinePainter extends CustomPainter {
     if (startIdx == null || endIdx == null) return;
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 10.0
+      ..strokeWidth = 12.0
       ..strokeCap = StrokeCap.round;
 
     Offset getOffset(int i) {
