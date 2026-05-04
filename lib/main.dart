@@ -69,15 +69,17 @@ class _GameScreenState extends State<GameScreen>
   bool gameStarted = false;
 
   void handleMove(int index) {
-    if (result != "no winner") return;
+    if (index != -1 && display[index] != '') return;
 
     setState(() {
-      if (index != -1 && display[index] == '') {
+      if (index != -1) {
+        // Mark that the game has officially begun
         gameStarted = true;
+
         display[index] = oTurn ? "O" : "X";
         oTurn = !oTurn;
-      } else if (index == -1) {
-        // This handles the timeout case
+      } else {
+        // This handles the timeout case (index == -1)
         oTurn = !oTurn;
       }
 
