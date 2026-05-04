@@ -14,10 +14,6 @@ class TicTacToeApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0F172A), // Deep Midnight
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.cyanAccent,
-          brightness: Brightness.dark,
-        ),
       ),
       home: const GameScreen(),
     );
@@ -31,18 +27,32 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
-  // --- Game Logic State ---
+class _GameScreenState extends State<GameScreen>
+    with SingleTickerProviderStateMixin {
   List<String> display = List.filled(9, '');
   bool oTurn = true;
-  String winnerMessage = "Your Move!";
+  String winnerMessage = "Turn O";
   String result = "no winner";
   int remainingSeconds = 15;
   Timer? timer;
 
-  final Color colorX = const Color(0xFFE94560); // Neon Pink/Red
+  // Colors
+  final Color colorX = const Color(0xFFE94560); // Neon Pink
   final Color colorO = const Color(0xFF00D2FF); // Neon Cyan
-  final Color gridColor = const Color(0xFF1E293B); // Slate Blue
+  final Color gridColor = const Color(0xFF1E293B);
+
+  // Animation for the Winning Line
+  late AnimationController _lineController;
+  List<int>? winningIndices;
+
+  @override
+  void initState() {
+    super.initState();
+    _lineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+  }
 
   void startMoveTimer() {
     timer?.cancel();
@@ -51,66 +61,85 @@ class _GameScreenState extends State<GameScreen> {
       if (remainingSeconds > 0) {
         setState(() => remainingSeconds--);
       } else {
-        handleMove(-1); // Timeout move
+        handleMove(-1); // Switch turn on timeout
       }
     });
   }
+
+  bool gameStarted = false;
 
   void handleMove(int index) {
     if (result != "no winner") return;
 
     setState(() {
       if (index != -1 && display[index] == '') {
+        gameStarted = true;
         display[index] = oTurn ? "O" : "X";
         oTurn = !oTurn;
       } else if (index == -1) {
-        // Switch turn on timeout
+        // This handles the timeout case
         oTurn = !oTurn;
       }
 
-      result = checkWinner();
-      if (result != "no winner") {
+      var winData = checkWinnerData();
+      if (winData != null) {
         timer?.cancel();
-        winnerMessage = result == "draw" ? "It's a Draw!" : "Winner: $result";
+        gameStarted = false; // Stop the game state
+        if (winData is List<int>) {
+          winningIndices = [winData[0], winData[2]];
+          result = display[winData[0]];
+          winnerMessage = "Winner: $result";
+          _lineController.forward();
+        } else {
+          result = "draw";
+          winnerMessage = "It's a Draw!";
+        }
       } else {
-        winnerMessage = "Player ${oTurn ? 'O' : 'X'}'s Turn";
-        startMoveTimer();
+        winnerMessage = "Turn ${oTurn ? 'O' : 'X'}";
+
+        // ONLY start the timer if a move has actually been made
+        if (gameStarted) {
+          startMoveTimer();
+        }
       }
     });
   }
 
-  String checkWinner() {
-    List<List<int>> winConditions = [
+  dynamic checkWinnerData() {
+    List<List<int>> lines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
       [0, 3, 6], [1, 4, 7], [2, 5, 8], // Cols
       [0, 4, 8], [2, 4, 6], // Diagonals
     ];
-
-    for (var condition in winConditions) {
-      if (display[condition[0]] != '' &&
-          display[condition[0]] == display[condition[1]] &&
-          display[condition[0]] == display[condition[2]]) {
-        return display[condition[0]];
+    for (var line in lines) {
+      if (display[line[0]] != '' &&
+          display[line[0]] == display[line[1]] &&
+          display[line[0]] == display[line[2]]) {
+        return line;
       }
     }
     if (!display.contains('')) return "draw";
-    return "no winner";
+    return null;
   }
 
   void resetGame() {
+    timer?.cancel(); // Kill any running timer immediately
     setState(() {
       display = List.filled(9, '');
       result = "no winner";
-      winnerMessage = "Your Move!";
+      winnerMessage = "Turn O";
       oTurn = true;
-      remainingSeconds = 15;
+      winningIndices = null;
+      remainingSeconds = 15; // Set it back to 15
+      gameStarted = false; // Set to false so it waits for the first tap
+      _lineController.reset();
     });
-    timer?.cancel();
   }
 
   @override
   void dispose() {
     timer?.cancel();
+    _lineController.dispose();
     super.dispose();
   }
 
@@ -123,22 +152,18 @@ class _GameScreenState extends State<GameScreen> {
             double maxWidth = constraints.maxWidth > 500
                 ? 500
                 : constraints.maxWidth;
-
             return Center(
               child: SizedBox(
                 width: maxWidth,
                 child: Column(
                   children: [
-                    const SizedBox(height: 20),
-                    // Header Section
+                    const SizedBox(height: 40),
                     _buildHeader(),
                     const Spacer(),
-                    // The Game Grid
-                    _buildGrid(maxWidth),
+                    _buildPlayArea(maxWidth),
                     const Spacer(),
-                    // Bottom Section (Timer & Reset)
                     _buildStatusArea(),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -167,13 +192,11 @@ class _GameScreenState extends State<GameScreen> {
             winnerMessage,
             key: ValueKey(winnerMessage),
             style: TextStyle(
-              fontSize: 20,
-              color: result == "no winner"
-                  ? Colors.white70
-                  : (result == "draw"
-                        ? Colors.orange
-                        : (result == "X" ? colorX : colorO)),
+              fontSize: 24,
               fontWeight: FontWeight.bold,
+              color: result == "no winner"
+                  ? (oTurn ? colorO : colorX)
+                  : Colors.white,
             ),
           ),
         ),
@@ -181,60 +204,62 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildGrid(double width) {
+  Widget _buildPlayArea(double width) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: AspectRatio(
         aspectRatio: 1,
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 9,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () => handleMove(index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  color: gridColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: AnimatedScale(
-                    scale: display[index] == '' ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.elasticOut,
-                    child: Text(
-                      display[index],
-                      style: TextStyle(
-                        fontSize: width * 0.15,
-                        fontWeight: FontWeight.w900,
-                        color: display[index] == "X" ? colorX : colorO,
-                        shadows: [
-                          Shadow(
-                            color: (display[index] == "X" ? colorX : colorO)
-                                .withOpacity(0.5),
-                            blurRadius: 20,
-                          ),
-                        ],
+        child: Stack(
+          children: [
+            GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 9,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () => handleMove(index),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: gridColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: AnimatedScale(
+                      scale: display[index] == '' ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.elasticOut,
+                      child: Text(
+                        display[index],
+                        style: TextStyle(
+                          fontSize: width * 0.15,
+                          fontWeight: FontWeight.bold,
+                          color: display[index] == "X" ? colorX : colorO,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            );
-          },
+            ),
+            // The Winning Line Painter
+            IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _lineController,
+                builder: (context, child) => CustomPaint(
+                  size: Size.infinite,
+                  painter: WinningLinePainter(
+                    winningIndices?.first,
+                    winningIndices?.last,
+                    _lineController.value,
+                    result == "X" ? colorX : colorO,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -243,25 +268,21 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildStatusArea() {
     return Column(
       children: [
-        // Modern Timer
         Stack(
           alignment: Alignment.center,
           children: [
             SizedBox(
-              height: 70,
-              width: 70,
+              height: 60,
+              width: 60,
               child: CircularProgressIndicator(
                 value: remainingSeconds / 15,
-                strokeWidth: 6,
-                backgroundColor: Colors.white10,
-                color: remainingSeconds <= 5
-                    ? Colors.redAccent
-                    : Colors.cyanAccent,
+                strokeWidth: 5,
+                color: remainingSeconds <= 5 ? Colors.redAccent : colorO,
               ),
             ),
             Text(
               "$remainingSeconds",
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -269,17 +290,54 @@ class _GameScreenState extends State<GameScreen> {
         ElevatedButton(
           onPressed: resetGame,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFE94560),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            backgroundColor: colorX,
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
-            elevation: 10,
           ),
-          child: Text(result == "no winner" ? "RESET GAME" : "PLAY AGAIN"),
+          child: Text(
+            result == "no winner" ? "RESET" : "PLAY AGAIN",
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
       ],
     );
   }
+}
+
+class WinningLinePainter extends CustomPainter {
+  final int? startIdx, endIdx;
+  final double progress;
+  final Color color;
+  WinningLinePainter(this.startIdx, this.endIdx, this.progress, this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (startIdx == null || endIdx == null) return;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 10.0
+      ..strokeCap = StrokeCap.round;
+
+    Offset getOffset(int i) {
+      double x = (i % 3) * (size.width / 3) + (size.width / 6);
+      double y = (i ~/ 3) * (size.height / 3) + (size.height / 6);
+      return Offset(x, y);
+    }
+
+    Offset start = getOffset(startIdx!);
+    Offset end = getOffset(endIdx!);
+    canvas.drawLine(
+      start,
+      Offset(
+        start.dx + (end.dx - start.dx) * progress,
+        start.dy + (end.dy - start.dy) * progress,
+      ),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(WinningLinePainter old) => old.progress != progress;
 }
