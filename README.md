@@ -25,7 +25,7 @@ Generates a standalone installer for Android devices.
 
 
 ## 🔧 Installation
-1.  Clone: `git clone https://github.com`
+1.  Clone: `git clone https://github.com/saianirudh-t/tictactoe.git`
 2.  Dependencies: `flutter pub get`
 3.  Run: `flutter run`
 
