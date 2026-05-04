@@ -1,17 +1,33 @@
-# tictac
+# ⚡ Neon Tic-Tac-Toe
 
-A new Flutter project.
+A modern, high-fidelity Tic-Tac-Toe game built with **Flutter**. It features a neon dark-mode aesthetic, responsive layouts, and custom-painted animations.
 
-## Getting Started
+## 🚀 Key Features
+*   Neon UI: Deep midnight theme with Pink (X) and Cyan (O) accents.
+*   Animated Strike: A dynamic line "draws" itself across the winning tiles.
+*   Smart Timer: 15s move timer that stays idle until the first tap.
+*   Responsive: Adaptive design for Web, Mobile, and Tablet.
 
-This project is a starting point for a Flutter application.
+## 🛠️ Tech Stack
+*   Framework: Flutter (Dart)
+*   Animations: Implicit (AnimatedScale) & Explicit (CustomPainter).
+*   State: Encapsulated logic with automatic memory cleanup (Dispose).
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 📦 Build & Deployment
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Use these commands to generate the files for your specific needs:
+
+### 📱 Android (APK)
+Generates a standalone installer for Android devices.
+
+
+
+## 🔧 Installation
+1.  Clone: `git clone https://github.com`
+2.  Dependencies: `flutter pub get`
+3.  Run: `flutter run`
+
+---
+
