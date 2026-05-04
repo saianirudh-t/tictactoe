@@ -222,7 +222,9 @@ class _GameScreenState extends State<GameScreen>
                 mainAxisSpacing: 12,
               ),
               itemBuilder: (context, index) => GestureDetector(
-                onTap: () => handleMove(index),
+                onTap: (display[index] == '' && result == "no winner")
+                    ? () => handleMove(index)
+                    : null,
                 child: Container(
                   decoration: BoxDecoration(
                     color: gridColor,
