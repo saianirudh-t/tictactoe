@@ -68,6 +68,7 @@ class _GameState extends State<Game> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
           title: const Text("tictactoe"),
@@ -102,24 +103,22 @@ class _GameState extends State<Game> {
                       onPressed: (display[index] == '' && result == "no winner")
                           ? () {
                               setState(() {
-                                bool firstmove = display.every(
-                                  (ele) => ele == '',
-                                );
-                                if (firstmove) {
-                                  startMoveTimer();
-                                }
+                                // 1. Place the move
                                 display[index] = oTurn ? "O" : "X";
                                 oTurn = !oTurn;
-                                result =
-                                    checkwinner(); // Updates to "X", "O", "draw", or "no winner"
+                                // 2. Check for winner
+                                result = checkwinner();
+                                // 3. Handle Timer and Messages
                                 if (result == "X" || result == "O") {
                                   winner = "The Winner is $result!";
-                                  timer?.cancel(); // Stop the countdown
+                                  timer?.cancel(); // Game over, stop timer
                                 } else if (result == "draw") {
                                   winner = "It's a Draw!";
-                                  timer?.cancel();
+                                  timer?.cancel(); // Game over, stop timer
                                 } else {
                                   winner = "The game is not done yet";
+                                  // RESET TIMER HERE: Calling this again restarts it at 30s
+                                  startMoveTimer();
                                 }
                               });
                             }
